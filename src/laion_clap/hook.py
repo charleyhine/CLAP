@@ -114,9 +114,14 @@ class CLAP_Module(torch.nn.Module):
         ckpt = load_state_dict(ckpt, skip_params=True)
         self.model.load_state_dict(ckpt)
         if verbose:
-            param_names = [n for n, p in self.model.named_parameters()]
-            for n in param_names:
-                logging.info(n, "\t", "Loaded" if n in ckpt else "Unloaded")
+            logging.info("Logging keys loaded vs. expected by model:")
+            loaded_keys = set(ckpt.keys())
+            model_keys = set(n for n, p in self.model.named_parameters())
+            all_keys = sorted(list(loaded_keys.union(model_keys)))
+            for k in all_keys:
+                status = "Loaded" if k in loaded_keys else "-"
+                expected = "Expected" if k in model_keys else "Unexpected"
+                logging.info(f"  Key: {k:<80} Status: {status:<10} Model: {expected}")
     
     def get_audio_embedding_from_filelist(self, x, use_tensor=False):
         """get audio embeddings from the audio file list
